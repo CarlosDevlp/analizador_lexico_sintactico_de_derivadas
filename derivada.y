@@ -1,5 +1,6 @@
 /*
 SCRIPT SINTÁCTICO
+	LALR(1)
 */
 %{
   #include <stdio.h>
@@ -20,7 +21,7 @@ SCRIPT SINTÁCTICO
   float derivarConstante(char *signo);
 
   void imprimirResultado();
-
+  void obtenerOperador(char *s);
   char resultado[500];
   
 
@@ -32,15 +33,17 @@ SCRIPT SINTÁCTICO
 	int entero;
 	float decimal;
 	char* caracteres;
+
 }
 
 %start termino
 
 
 //lista de tokens a recibir (definiéndolos)
-%token <caracteres> COEFICIENTE
+%token <caracteres> NUMERO
+%token <caracteres> OPERADOR
 %token IGUAL
-%token SUMA
+%token <caracteres>SUMA
 %token MULTIPLICACION
 %token DIVISION
 %token <caracteres> VARIABLE
@@ -49,39 +52,34 @@ SCRIPT SINTÁCTICO
 %type<caracteres> termino
 
 
-
 %%
 
-termino:COEFICIENTE {
-					//printf("\n%s -",$1);
-					$$=$1;
-				}
-		 |termino VARIABLE COEFICIENTE {
-		 			$$=$3;
-		 		    //printf("\n%s - %s",$1,$3);
-		 		    //printf("\n%.2f - %.2f",atof($1),atof($3));
-		 			derivarPotencia(atof($1),atof($3));
-		 			//imprimirResultado();
-		  }
-		 |termino SUMA COEFICIENTE {
-		 			$$=$1;
 
-		 			strcat(resultado,"+");
-		 		    //printf("\n%s",$3);
-		 		    /*printf("\n%.2f - %.2f",atof($1),atof($3));
+
+
+termino:NUMERO {
+			//2x3+2+4x2;
+			//tx3+2+4x2;
+			//t+2+4x2;
+			//t+4x2;
+					$$=$1;
+		 }		 
+		 |termino VARIABLE NUMERO {
+		 			$$=$3;		 
 		 			derivarPotencia(atof($1),atof($3));
-		 			imprimirResultado();*/
+		 			
+		  }
+		 
+		 |termino OPERADOR NUMERO {
+		 			$$=$3;
+					obtenerOperador($2);
 		  } 
-		 |COEFICIENTE PUNTO_COMA {
-		 		//sprintf("0");
-		 		strcat(resultado,"0");
-		 }
+		 
          |termino PUNTO_COMA {
      			imprimirResultado();
      		}
      	;
 	
-
 
 %%
 
@@ -93,11 +91,26 @@ void yyerror(char *s){
 
 //imprimir el resultado con la equación derivada
 void imprimirResultado(){
-	if(resultado[strlen(resultado)-1]=='+')
-		strcat(resultado,"0");
+	int tam=strlen(resultado);
+	char signos[]={'+','-'};
+
+	for(int i=1;i<tam;i++)
+		for(int ii=0;ii<2;ii++)
+		for(int iii=0;iii<2;iii++)
+	 		if(resultado[i-1]==signos[ii] && resultado[i]==signos[iii]) resultado[i-1]=' ';
+
+	
+	//if(resultado[tam-1]=='+' || strcmp(resultado,"")==0)
+	if(strcmp(resultado,"")==0 || strcmp(resultado,"+")==0 || strcmp(resultado,"-")==0)
+		strcpy(resultado,"0");
+
 	printf("\nresultado-> f(x)'= %s",resultado);
 }
 
+
+void obtenerOperador(char *s){
+	strcat(resultado,s);
+}
 
 //derivar 
 float derivarPotencia(float coeficiente, float exponente){

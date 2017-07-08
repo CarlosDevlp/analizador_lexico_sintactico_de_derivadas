@@ -5,22 +5,18 @@ SCRIPT LÉXICO
 	#include <stdio.h>
 	#include <stdlib.h>
 	#include "derivada.tab.h"
-	int linea; //contador de líneas para el error léxico
 %}
 
-COEFICIENTE [0-9]+("."[0-9]+)?
-
+NUMERO [0-9]+("."[0-9]+)?
+OPERADOR ("+"|"-")
 
 %%
-{COEFICIENTE}	{
-				yylval.caracteres=yytext;
-				return(COEFICIENTE);
+{NUMERO}		{
+				yylval.caracteres=strdup(yytext);
+				return(NUMERO);
 				}
-"=" 			{return(IGUAL);}
-"+"				{return(SUMA);}
-"-"				{return(RESTA);}
-"*"				{return(MULTIPLICACION);}
-"/"				{return(DIVISION);}
+{OPERADOR}		{yylval.caracteres=strdup(yytext);
+				return(OPERADOR);}
 "x"				{return(VARIABLE);}
 ";"				{return(PUNTO_COMA);}
 .				{printf("Error léxico");}
